@@ -17,8 +17,10 @@ type floatInfo struct {
 	bias     int
 }
 
-var float32info = floatInfo{23, 8, -127}
-var float64info = floatInfo{52, 11, -1023}
+var (
+	float32info = floatInfo{23, 8, -127}
+	float64info = floatInfo{52, 11, -1023}
+)
 
 // roundShortest rounds d (= mant * 2^exp) to the shortest number of digits
 // that will let the original floating point value be precisely reconstructed.

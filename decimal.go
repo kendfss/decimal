@@ -60,13 +60,15 @@ var ExpMaxIterations = 1000
 // Zero should never be compared with == or != directly, please use decimal.Equal or decimal.Cmp instead.
 var Zero = New(0, 1)
 
-var zeroInt = big.NewInt(0)
-var oneInt = big.NewInt(1)
-var twoInt = big.NewInt(2)
-var fourInt = big.NewInt(4)
-var fiveInt = big.NewInt(5)
-var tenInt = big.NewInt(10)
-var twentyInt = big.NewInt(20)
+var (
+	zeroInt   = big.NewInt(0)
+	oneInt    = big.NewInt(1)
+	twoInt    = big.NewInt(2)
+	fourInt   = big.NewInt(4)
+	fiveInt   = big.NewInt(5)
+	tenInt    = big.NewInt(10)
+	twentyInt = big.NewInt(20)
+)
 
 var factorials = []Decimal{New(1, 0)}
 
@@ -613,7 +615,7 @@ func (d Decimal) DivRound(d2 Decimal, precision int32) Decimal {
 	// now rv2 = abs(r.value) * 2
 	r2 := Decimal{value: &rv2, exp: r.exp + precision}
 	// r2 is now 2 * r * 10 ^ precision
-	var c = r2.Cmp(d2.Abs())
+	c := r2.Cmp(d2.Abs())
 
 	if c < 0 {
 		return q
@@ -868,34 +870,34 @@ func (d Decimal) Cmp(d2 Decimal) int {
 	return rd.value.Cmp(rd2.value)
 }
 
-// Equal returns whether the numbers represented by d and d2 are equal.
-func (d Decimal) Equal(d2 Decimal) bool {
+// Eq returns whether the numbers represented by d and d2 are equal.
+func (d Decimal) Eq(d2 Decimal) bool {
 	return d.Cmp(d2) == 0
 }
 
-// Equals is deprecated, please use Equal method instead
-func (d Decimal) Equals(d2 Decimal) bool {
-	return d.Equal(d2)
+// Eqs is deprecated, please use Equal method instead
+func (d Decimal) Eqs(d2 Decimal) bool {
+	return d.Eq(d2)
 }
 
-// GreaterThan (GT) returns true when d is greater than d2.
-func (d Decimal) GreaterThan(d2 Decimal) bool {
+// Gt (GT) returns true when d is greater than d2.
+func (d Decimal) Gt(d2 Decimal) bool {
 	return d.Cmp(d2) == 1
 }
 
-// GreaterThanOrEqual (GTE) returns true when d is greater than or equal to d2.
-func (d Decimal) GreaterThanOrEqual(d2 Decimal) bool {
+// Ge (GTE) returns true when d is greater than or equal to d2.
+func (d Decimal) Ge(d2 Decimal) bool {
 	cmp := d.Cmp(d2)
 	return cmp == 1 || cmp == 0
 }
 
-// LessThan (LT) returns true when d is less than d2.
-func (d Decimal) LessThan(d2 Decimal) bool {
+// Lt (LT) returns true when d is less than d2.
+func (d Decimal) Lt(d2 Decimal) bool {
 	return d.Cmp(d2) == -1
 }
 
-// LessThanOrEqual (LTE) returns true when d is less than or equal to d2.
-func (d Decimal) LessThanOrEqual(d2 Decimal) bool {
+// Le (LTE) returns true when d is less than or equal to d2.
+func (d Decimal) Le(d2 Decimal) bool {
 	cmp := d.Cmp(d2)
 	return cmp == -1 || cmp == 0
 }
@@ -1115,7 +1117,7 @@ func (d Decimal) RoundCeil(places int32) Decimal {
 	}
 
 	rescaled := d.rescale(-places)
-	if d.Equal(rescaled) {
+	if d.Eq(rescaled) {
 		return d
 	}
 
@@ -1141,7 +1143,7 @@ func (d Decimal) RoundFloor(places int32) Decimal {
 	}
 
 	rescaled := d.rescale(-places)
-	if d.Equal(rescaled) {
+	if d.Eq(rescaled) {
 		return d
 	}
 
@@ -1167,7 +1169,7 @@ func (d Decimal) RoundUp(places int32) Decimal {
 	}
 
 	rescaled := d.rescale(-places)
-	if d.Equal(rescaled) {
+	if d.Eq(rescaled) {
 		return d
 	}
 
@@ -1195,7 +1197,7 @@ func (d Decimal) RoundDown(places int32) Decimal {
 	}
 
 	rescaled := d.rescale(-places)
-	if d.Equal(rescaled) {
+	if d.Eq(rescaled) {
 		return d
 	}
 	return rescaled
@@ -1217,7 +1219,6 @@ func (d Decimal) RoundDown(places int32) Decimal {
 // 	   NewFromFloat(555).RoundBank(-1).String() // output: "560"
 //
 func (d Decimal) RoundBank(places int32) Decimal {
-
 	round := d.Round(places)
 	remainder := d.Sub(round).Abs()
 
@@ -1686,10 +1687,10 @@ func (d NullDecimal) MarshalText() (text []byte, err error) {
 
 // Atan returns the arctangent, in radians, of x.
 func (d Decimal) Atan() Decimal {
-	if d.Equal(NewFromFloat(0.0)) {
+	if d.Eq(NewFromFloat(0.0)) {
 		return d
 	}
-	if d.GreaterThan(NewFromFloat(0.0)) {
+	if d.Gt(NewFromFloat(0.0)) {
 		return d.satan()
 	}
 	return d.Neg().satan().Neg()
@@ -1721,10 +1722,10 @@ func (d Decimal) satan() Decimal {
 	Tan3pio8 := NewFromFloat(2.41421356237309504880)      // tan(3*pi/8)
 	pi := NewFromFloat(3.14159265358979323846264338327950288419716939937510582097494459)
 
-	if d.LessThanOrEqual(NewFromFloat(0.66)) {
+	if d.Le(NewFromFloat(0.66)) {
 		return d.xatan()
 	}
-	if d.GreaterThan(Tan3pio8) {
+	if d.Gt(Tan3pio8) {
 		return pi.Div(NewFromFloat(2.0)).Sub(NewFromFloat(1.0).Div(d).xatan()).Add(Morebits)
 	}
 	return pi.Div(NewFromFloat(4.0)).Add((d.Sub(NewFromFloat(1.0)).Div(d.Add(NewFromFloat(1.0)))).xatan()).Add(NewFromFloat(0.5).Mul(Morebits))
@@ -1747,12 +1748,12 @@ func (d Decimal) Sin() Decimal {
 	PI4C := NewFromFloat(2.69515142907905952645e-15)                            // 0x3ce8469898cc5170,
 	M4PI := NewFromFloat(1.273239544735162542821171882678754627704620361328125) // 4/pi
 
-	if d.Equal(NewFromFloat(0.0)) {
+	if d.Eq(NewFromFloat(0.0)) {
 		return d
 	}
 	// make argument positive but save the sign
 	sign := false
-	if d.LessThan(NewFromFloat(0.0)) {
+	if d.Lt(NewFromFloat(0.0)) {
 		d = d.Neg()
 		sign = true
 	}
@@ -1798,7 +1799,6 @@ var _cos = [...]Decimal{
 
 // Cos returns the cosine of the radian argument x.
 func (d Decimal) Cos() Decimal {
-
 	PI4A := NewFromFloat(7.85398125648498535156e-1)                             // 0x3fe921fb40000000, Pi/4 split into three parts
 	PI4B := NewFromFloat(3.77489470793079817668e-8)                             // 0x3e64442d00000000,
 	PI4C := NewFromFloat(2.69515142907905952645e-15)                            // 0x3ce8469898cc5170,
@@ -1806,7 +1806,7 @@ func (d Decimal) Cos() Decimal {
 
 	// make argument positive
 	sign := false
-	if d.LessThan(NewFromFloat(0.0)) {
+	if d.Lt(NewFromFloat(0.0)) {
 		d = d.Neg()
 	}
 
@@ -1848,29 +1848,29 @@ var _tanP = [...]Decimal{
 	NewFromFloat(1.15351664838587416140e+6),  // 0x413199eca5fc9ddd
 	NewFromFloat(-1.79565251976484877988e+7), // 0xc1711fead3299176
 }
+
 var _tanQ = [...]Decimal{
 	NewFromFloat(1.00000000000000000000e+0),
-	NewFromFloat(1.36812963470692954678e+4),  //0x40cab8a5eeb36572
-	NewFromFloat(-1.32089234440210967447e+6), //0xc13427bc582abc96
-	NewFromFloat(2.50083801823357915839e+7),  //0x4177d98fc2ead8ef
-	NewFromFloat(-5.38695755929454629881e+7), //0xc189afe03cbe5a31
+	NewFromFloat(1.36812963470692954678e+4),  // 0x40cab8a5eeb36572
+	NewFromFloat(-1.32089234440210967447e+6), // 0xc13427bc582abc96
+	NewFromFloat(2.50083801823357915839e+7),  // 0x4177d98fc2ead8ef
+	NewFromFloat(-5.38695755929454629881e+7), // 0xc189afe03cbe5a31
 }
 
 // Tan returns the tangent of the radian argument x.
 func (d Decimal) Tan() Decimal {
-
 	PI4A := NewFromFloat(7.85398125648498535156e-1)                             // 0x3fe921fb40000000, Pi/4 split into three parts
 	PI4B := NewFromFloat(3.77489470793079817668e-8)                             // 0x3e64442d00000000,
 	PI4C := NewFromFloat(2.69515142907905952645e-15)                            // 0x3ce8469898cc5170,
 	M4PI := NewFromFloat(1.273239544735162542821171882678754627704620361328125) // 4/pi
 
-	if d.Equal(NewFromFloat(0.0)) {
+	if d.Eq(NewFromFloat(0.0)) {
 		return d
 	}
 
 	// make argument positive but save the sign
 	sign := false
-	if d.LessThan(NewFromFloat(0.0)) {
+	if d.Lt(NewFromFloat(0.0)) {
 		d = d.Neg()
 		sign = true
 	}
@@ -1887,7 +1887,7 @@ func (d Decimal) Tan() Decimal {
 	z := d.Sub(y.Mul(PI4A)).Sub(y.Mul(PI4B)).Sub(y.Mul(PI4C)) // Extended precision modular arithmetic
 	zz := z.Mul(z)
 
-	if zz.GreaterThan(NewFromFloat(1e-14)) {
+	if zz.Gt(NewFromFloat(1e-14)) {
 		w := zz.Mul(_tanP[0].Mul(zz).Add(_tanP[1]).Mul(zz).Add(_tanP[2]))
 		x := zz.Add(_tanQ[1]).Mul(zz).Add(_tanQ[2]).Mul(zz).Add(_tanQ[3]).Mul(zz).Add(_tanQ[4])
 		y = z.Add(z.Mul(w.Div(x)))
